@@ -1,0 +1,234 @@
+---
+title: "HW 1 Edward Trout"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r "wd and package loading", echo=FALSE, include=FALSE}
+setwd("C:/Users/edwardtrout/Documents/Hierarchical Modelling/622 Mod")
+library(psych)
+library(car)
+```
+
+### Question 1: LSD and Math Score Data
+
+```{r "Question 1"}
+# read in data for math scores and LSD concentration
+lsd <- read.file("lsd.txt")
+
+# build model
+lsd.mod <- lm(lsd$MATH_score~lsd$LSD_concentration)
+
+#return parameters and confidence intervals
+coef(lsd.mod)
+confint(lsd.mod, level = 0.95)
+
+```
+
+#### **a) Scatterplot**  
+```{r "LSD plot", echo = FALSE, fig.align='center'}
+#scatterplot
+plot(lsd$MATH_score ~ lsd$LSD_concentration, col = "darkblue", bty = "l",
+     xlab = "LSD Concentration (mmol)",
+     ylab = "Math Score (pct)",
+     xlim = c(.5,7), 
+     ylim = c(20,100))
+curve(89.124 + -9.009*x, add = T, col = "darkorange", lwd =2)
+```
+
+#### **b) Parameter Coefficients and Confidence Intervals**  
+Intercept: 89.124 [71.008, 107.240]  
+Slope: -9.009 [-12.873,-5.146]  
+Variance: 7.126 (residual standard error)  
+
+```{r "Question 1 cont'd"}
+# make objects of parameters
+a <- 89.124
+b <- -9.009
+
+y.hat <- a + b*(lsd$LSD_concentration)
+
+#R-squared function
+
+r2<-function(y_hat,y) { 
+  RSS<-sum((((y_hat))-(y))^2) 
+  TSS<-sum(((y)-(mean(y)))^2) 
+  return((TSS-RSS)/TSS)} 
+
+#RMSE function
+
+rmse=function(y_hat,y) { 
+  return(sqrt(mean((y-y_hat)^2)))
+}
+
+# return R squared and RMSE
+
+r2(y.hat, lsd$MATH_score)
+rmse(y.hat, lsd$MATH_score)
+
+```
+
+#### **c) Metrics of Model Fit**  
+R^2^: 0.877  
+RMSE: 6.022  
+
+### **A. What level of LSD tissue concentration do you need to ensure a test score of >85%?**  
+  
+*If it is to be assumed that LSD concentration in the bloodstream is completely explanatory to test scores, these data would predict a level of .458 or lower to score above 85% on the math test.*  
+
+### **B. How well does LSD tissue concentration predict test performance?**  
+  
+*The model for LSD has a .877 R^2^ value, which is a good predictive strength, within the bounds of the given LSD concentrations. This value would not be useful for ascertaining the correctness of predictions outside of the experimental LSD values*  
+
+### **C. Why might the normal distribution be inappropriate to model these data?**  
+  
+*The normal distribution is best used on data that are unlimited and continuous. Math scores, while mostly continuous, are strictly bounded between 0 and 100.*  
+
+***
+## Question 2: Miracle Weight Loss Pomegranates 
+```{r "Question 2"}
+# read in pomegranate weight loss data
+pom <- read.csv("miracle_food.csv")
+head(pom)
+
+#build and inspect model
+pom.mod <- lm(pom$Weight_loss ~ pom$pomegranate)
+coef(pom.mod)
+confint(pom.mod, level = 0.95)
+
+```
+
+#### **a) Scatterplot**  
+```{r "pomegranate plot", fig.align='center'}
+# scatterplot
+plot(pom$Weight_loss~pom$pomegranate, col = "darkred", bty = "l",
+     xlab = "Consumed Pomegranates",
+     ylab = "Weight loss (kg)")
+curve(-.1790 -.5251*x, add = T, col = "purple4", lwd = 2)
+```
+
+#### **b) Parameter Coefficients and Confidence Intervals**  
+Intercept: -0.179 [-1.409, 1.051]  
+Slope: -0.525 [-0.886,-0.164]  
+Variance: 9.971 (residual standard error)  
+
+```{r "Question 2 cont'd"}
+# make objects of parameters
+c <- -.1790
+d <- -.5251
+
+y.hat2 <- c + d*(pom$pomegranate)
+
+# return r2 and rmse
+r2(y.hat2, pom$Weight_loss)
+rmse(y.hat2, pom$Weight_loss)
+
+```
+  
+#### **c) Metrics of Model Fit**  
+R^2^: 0.008  
+RMSE: 9.961  
+
+### **Given the significant p-value for the effect of pomegranates on weight loss, do you agree or disagree with the miracle claim?**  
+  
+*I would disagree, while as there is a significant effect of pomegranates on weight loss, the effect size itself is very small. The slope of the model line is around a half  pound of weight loss per pomegranate over three months. Realistic weight loss goals (say 10–20 lbs) in that time span would require someone to eat 20-40 pomegranates per day (at which point the caloric intake itself might rule out any weight-loss power the pomegranates *do* have). Additionally, the R^2^ value is incredibly low, this model does a terrible job at explaining the data. p-value isn't everything!*  
+
+***
+## Question 3: Mean Absolute Error  
+  
+### **A. Translate the mathematical equation for MAE into a function in R.**  
+
+```{r "Question 3"}
+# MAE function
+mae <- function(y_hat,y) {
+  return(mean(sqrt((y-y_hat)^2)))
+}
+
+```
+
+### **B. Compare RMSE, R^2^, and MAE for the linear models in questions 1 and 2. How do these metrics of model fit differ?**  
+
+##### **LSD data**  
+Metric | Value
+------ | ------
+R^2^   | .878
+RMSE   | 6.02
+MAE    | 4.89  
+
+##### **Pomegranate data**
+Metric | Value
+------ | ------
+R^2^   | .008
+RMSE   | 9.96
+MAE    | 7.98    
+
+*R^2^ is different from both RMSE and MAE in that it is on a scale of 0-1 measuring how well the data are explained by the model. It is unitless. RMSE and MAE are both measured in the unit of the response or dependent variable, and give the average error in any of the response values given the explanatory power of the model. RMSE and MAE differ from each other in that MAE will always be lower in value and not give extra weight to more extreme distances, making it more even when trying to predict response variable values from experimental input variables.*  
+
+***
+
+## Question 4: Simulating Datasets 
+#### Step 1- Create a Predictor Variable using runif or seq
+```{r "Question 4"}
+# build predictor variable and simulated parameters
+predictor <- runif(1000)
+
+```
+
+#### Step 2- Decide on a Value for the Intercept and Slope
+```{r "Question 4 cont'd1"}
+intercept <- 2.0
+slope <- 3.0
+sigma <- .1
+
+```
+
+#### Step 3- Use rnorm to simulate draws from a normal distribution for your dataset.
+```{r "Question 4 cont'd2"}
+# simulate response variable
+response <- rnorm(1000, mean = intercept + slope*predictor, sd = sigma)
+
+```
+
+### **A. Plot your Data**
+```{r "scatterplot1", echo=FALSE, fig.align='center'}
+# scatterplot
+plot(response~predictor, col = "darkolivegreen", lwd = 1, bty = "l")
+
+```
+
+### **B. Estimate Slope and Intercept Parameters from the data using Linear Regression**
+```{r "Question 4 cont'd3"}
+# check parameters for return data
+rand.mod <- lm(response~predictor)
+coef(rand.mod)
+
+```
+
+### **C. How do your estimates compare to the true values you came up with in step 2?**  
+*The parameters do indeed closely resemble the true values given, mostly due to the fact that the included variance was low (.1).*    
+
+***
+
+## Question 5: Simulated Heteroscedasticity  
+```{r "Question 5"}
+# create increasing  variance function
+var.obj <- 1.5*predictor
+
+# generate new response to increasing variance model
+response2 <- rnorm(1000, mean = intercept + slope*predictor, sd = var.obj)
+
+```
+
+### **A. Construct a plot of simulated data**  
+```{r "scatterplot2", echo = FALSE, fig.align='center'}
+# scatterplot
+plot(response2~predictor, xlim = c(0,1), col = "purple4")
+
+```
+
+### **B. What is a potential biological explanation for the data you have simulated?**  
+*One example of seeing this kind of trend might be in animal limb length and home range size across all species. As a species limbs become longer,  they may vary their home range sizes more, some may have large due to capability of movement, some may stay small due to geographic constraints, whereas species with smaller limb sizes will have a constant home range size regardless of geographic constraints.*
+
